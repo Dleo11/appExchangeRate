@@ -5,45 +5,56 @@ import com.mdleo.appexchangerate.models.ExchangeRate;
 import com.mdleo.appexchangerate.models.Rate;
 import com.mdleo.appexchangerate.models.SearchExchangeRate;
 
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Principal {
     public static void main(String[] args) {
 
-        System.out.println(" -- Sistema de Conversión de Monedas --");
+        System.out.println("\n -- Sistema de Conversión de Monedas --");
+        System.out.println("\nMonedas más comunes: \n");
+        String div = """
+                USD, Dólar estadounidense       BRL, Real brasileño
+                EUR, Euro                       INR, Rupia india
+                JPY, Yen japonés                CHF, Franco suizo
+                GBP, Libra esterlina            AUD, Dólar australiano
+                CNY, Yuan chino                 CAD, Dólar canadiense
+                ARS, Peso argentino             COP, Peso colombiano
+                PEN, Nuevo sol peruano          BOB, Boliviano
+                """;
+        System.out.println(div);
 
         Scanner lectura = new Scanner(System.in);
         List<Rate> rates = new ArrayList<>();
         SearchExchangeRate consulta = new SearchExchangeRate();
         CreateJSONfile generator = new CreateJSONfile();
 
+        Set<String> validCurrencies = Set.of("USD", "EUR", "JPY", "GBP", "CNY", "CAD", "ARS", "PEN", "BRL", "INR", "CHF", "AUD", "COP", "BOB");
+
         while (true) {
             System.out.println("Ingresa la moneda base (o escribe 'salir' para terminar): ");
-
             try {
-                var baseCurrency = String.valueOf(lectura.nextLine().trim().toUpperCase());
+                var baseCurrency = lectura.nextLine().trim().toUpperCase();
                 if (baseCurrency.equalsIgnoreCase("salir")) {
                     break;
                 }
 
-                if (baseCurrency.length() != 3) {
-                    System.out.println("El código de moneda debe tener 3 letras. Intenta nuevamente.");
+                if (!validCurrencies.contains(baseCurrency)) {
+                    System.out.println("Moneda base no válida. Intenta nuevamente.");
                     continue;
                 }
+
                 ExchangeRate exchangeRate = consulta.searchExchangeRate(baseCurrency);
 
                 System.out.println("Ingresa la moneda destino: ");
                 var targetCurrency = lectura.nextLine().trim().toUpperCase();
-                if (targetCurrency.length() != 3) {
-                    System.out.println("El código de la moneda destino debe tener 3 letras. Intenta nuevamente.");
+
+                if (!validCurrencies.contains(targetCurrency)) {
+                    System.out.println("Moneda destino no válida. Intenta nuevamente.");
                     continue;
                 }
-                System.out.println("Ingresa la cantidad a convertir: ");
-                double  amount;
 
+                System.out.println("Ingresa la cantidad a convertir: ");
+                double amount;
                 try {
                     amount = lectura.nextDouble();
                     lectura.nextLine();  // Consumir el salto de línea
@@ -53,42 +64,39 @@ public class Principal {
                     continue;
                 }
 
-                // Obtener el tipo de cambio para la moneda destino
-                Double conversionRate = exchangeRate.conversion_rates().get(targetCurrency.toUpperCase());
+                Double conversionRate = exchangeRate.conversion_rates().get(targetCurrency);
 
-                double convertedAmount = 0;
                 if (conversionRate != null) {
-                    convertedAmount = amount * conversionRate;
-                    System.out.println("Monto convertido: " + convertedAmount + " " + targetCurrency.toUpperCase());
+                    double convertedAmount = amount * conversionRate;
+                    System.out.println("Monto convertido: " + Math.round(convertedAmount * 100.0) / 100.0 + " " + targetCurrency);
 
                     Rate rate = new Rate(
-                            baseCurrency.toUpperCase(),
-                            targetCurrency.toUpperCase(),
+                            baseCurrency,
+                            targetCurrency,
+                            conversionRate,
                             amount,
                             convertedAmount,
-                            exchangeRate.time_last_update_utc().substring(0, 26),
-                            exchangeRate.time_next_update_utc().substring(0, 26)
+                            exchangeRate.time_last_update_utc(),
+                            exchangeRate.time_next_update_utc()
                     );
                     rates.add(rate);
 
                 } else {
-                    System.out.println("Moneda destino no válida o no disponible.");
+                    System.out.println("No se pudo obtener la tasa de conversión para " + targetCurrency);
                 }
 
             } catch (NullPointerException e) {
-                System.out.println("No se pudo obtener información de la API. Verifica la moneda base.");
-            } catch (RuntimeException e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.println("Error al obtener información. Verifica las monedas ingresadas o inténtalo más tarde.");
             } catch (Exception e) {
-                System.out.println("Ocurrió un error inesperado: " + e.getMessage());
+                System.out.println("Ocurrió un error: " + e.getMessage());
             }
         }
 
+        // Generar archivo JSON
         if (!rates.isEmpty()) {
             generator.createFile((ArrayList<Rate>) rates);
-            System.out.println("Conversiones almacenadas en archivo JSON.");
-        } else {
-            System.out.println("No se realizaron conversiones.");
         }
+
+        System.out.println("Gracias por usar el conversor de monedas.");
     }
 }

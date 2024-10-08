@@ -9,11 +9,10 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class CreateJSONfile {
 
-    public void createFile (ArrayList<Rate> rates) {
+    public void createFile(ArrayList<Rate> rates) {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
@@ -27,7 +26,6 @@ public class CreateJSONfile {
             // Convertir la lista 'rates' a formato JSON
             escritura.write(gson.toJson(rates));
             escritura.close();
-//            gson.toJson(rates, escritura);
             System.out.println("Archivo JSON creado correctamente: " + fileName);
         } catch (IOException e) {
             System.out.println("Error al crear el archivo JSON: " + e.getMessage());

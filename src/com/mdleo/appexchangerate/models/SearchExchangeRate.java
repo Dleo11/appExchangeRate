@@ -31,7 +31,6 @@ public class SearchExchangeRate {
         } catch (InterruptedException e) {
             throw new RuntimeException("La solicitud fue interrumpida: " + e.getMessage());
         } catch (Exception e) {
-            // Para cualquier otro error, se da una descripción más clara
             throw new RuntimeException("Ocurrió un error inesperado: " + e.getMessage());
         }
     }
