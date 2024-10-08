@@ -30,7 +30,7 @@ Antes de ejecutar el proyecto, asegúrate de tener los siguientes componentes in
 
 1. **Clonar el repositorio**:
    ```bash
-   git clone https://github.com/Dleo11/conversor-monedas.git
+   git clone https://github.com/Dleo11/appExchangeRate.git
    ```
 
 2. **Configurar la API**:
